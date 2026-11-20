@@ -193,20 +193,26 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		buffer = new BufferBuilder(ALLOCATOR, THROUGH_WALLS.getVertexFormatMode(), THROUGH_WALLS.getVertexFormat());
 		int markerCount = 0;
 		if (oresEnabled) {
+			float pulse = 0.72f + 0.20f * (float) ((Math.sin(System.nanoTime() / 420_000_000.0) + 1.0) * 0.5);
 			for (Map.Entry<BlockPos, Integer> entry : oreMarkers.entrySet()) {
 				BlockPos pos = entry.getKey();
 				float inset = 0.08f;
 				addBox(matrices.last().pose(), pos.getX() + inset, pos.getY() + inset, pos.getZ() + inset,
-						pos.getX() + 1f - inset, pos.getY() + 1f - inset, pos.getZ() + 1f - inset, entry.getValue(), 0.40f);
+						pos.getX() + 1f - inset, pos.getY() + 1f - inset, pos.getZ() + 1f - inset, entry.getValue(), 0.10f);
+				addOutline(matrices.last().pose(), pos.getX() + inset, pos.getY() + inset, pos.getZ() + inset,
+						pos.getX() + 1f - inset, pos.getY() + 1f - inset, pos.getZ() + 1f - inset, entry.getValue(), pulse);
 				markerCount++;
 			}
 		}
 		if (playersEnabled) {
+			float pulse = 0.72f + 0.20f * (float) ((Math.sin(System.nanoTime() / 420_000_000.0) + 1.0) * 0.5);
 			for (Player player : client.level.players()) {
 				if (player == client.player || player.isRemoved() || player.distanceToSqr(client.player) > 32 * 32) continue;
 				AABB box = player.getBoundingBox();
 				addBox(matrices.last().pose(), (float) box.minX, (float) box.minY, (float) box.minZ,
-						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFF3030, 0.32f);
+						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFF3030, 0.07f);
+				addOutline(matrices.last().pose(), (float) box.minX, (float) box.minY, (float) box.minZ,
+						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFF3030, pulse);
 				markerCount++;
 			}
 		}
@@ -233,6 +239,22 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		face(matrix, x2,y1,z2, x2,y1,z1, x2,y2,z1, x2,y2,z2, r,g,b,alpha);
 		face(matrix, x1,y2,z2, x2,y2,z2, x2,y2,z1, x1,y2,z1, r,g,b,alpha);
 		face(matrix, x1,y1,z1, x2,y1,z1, x2,y1,z2, x1,y1,z2, r,g,b,alpha);
+	}
+
+	private static void addOutline(Matrix4fc matrix, float x1, float y1, float z1, float x2, float y2, float z2, int argb, float alpha) {
+		float w = 0.035f;
+		addBox(matrix, x1, y1, z1, x1 + w, y2, z1 + w, argb, alpha);
+		addBox(matrix, x2 - w, y1, z1, x2, y2, z1 + w, argb, alpha);
+		addBox(matrix, x1, y1, z2 - w, x1 + w, y2, z2, argb, alpha);
+		addBox(matrix, x2 - w, y1, z2 - w, x2, y2, z2, argb, alpha);
+		addBox(matrix, x1, y1, z1, x2, y1 + w, z1 + w, argb, alpha);
+		addBox(matrix, x1, y2 - w, z1, x2, y2, z1 + w, argb, alpha);
+		addBox(matrix, x1, y1, z2 - w, x2, y1 + w, z2, argb, alpha);
+		addBox(matrix, x1, y2 - w, z2 - w, x2, y2, z2, argb, alpha);
+		addBox(matrix, x1, y1, z1, x1 + w, y1 + w, z2, argb, alpha);
+		addBox(matrix, x2 - w, y1, z1, x2, y1 + w, z2, argb, alpha);
+		addBox(matrix, x1, y2 - w, z1, x1 + w, y2, z2, argb, alpha);
+		addBox(matrix, x2 - w, y2 - w, z1, x2, y2, z2, argb, alpha);
 	}
 
 	private static void face(Matrix4fc m, float ax,float ay,float az, float bx,float by,float bz, float cx,float cy,float cz, float dx,float dy,float dz, float r,float g,float b,float a) {
