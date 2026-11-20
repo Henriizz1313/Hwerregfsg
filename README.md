@@ -31,3 +31,4 @@ Das Mod-JAR liegt danach unter `build/libs/`. Fabric API wird benötigt.
 ## Hinweise
 
 Die Mod scannt ausschließlich bereits geladene Client-Chunks. Sie lädt keine Chunks nach und sendet keine zusätzlichen Daten an den Server. Die Spielerübersicht nutzt Informationen, die der Client für geladene Spieler erhält.
+
