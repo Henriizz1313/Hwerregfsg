@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "accessiblevision",
+  "version": "${version}",
+  "name": "Accessible Vision",
+  "description": "High-contrast visual assistance for Minecraft.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.hwerregfsg.accessiblevision.AccessibleVisionClient"]
+  },
+  "mixins": ["accessiblevision.client.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
