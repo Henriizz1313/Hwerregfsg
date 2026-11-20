@@ -72,6 +72,7 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private KeyMapping toggleOres;
 	private KeyMapping togglePlayers;
 	private KeyMapping toggleWarmFilter;
+	private KeyMapping openMenu;
 	private boolean oresEnabled = true;
 	private boolean playersEnabled = true;
 	private boolean warmFilterEnabled = true;
@@ -87,6 +88,7 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		toggleOres = registerKey("key.accessiblevision.toggle_ores", GLFW.GLFW_KEY_O);
 		togglePlayers = registerKey("key.accessiblevision.toggle_players", GLFW.GLFW_KEY_P);
 		toggleWarmFilter = registerKey("key.accessiblevision.toggle_warm_filter", GLFW.GLFW_KEY_V);
+		openMenu = registerKey("key.accessiblevision.open_menu", GLFW.GLFW_KEY_RIGHT_SHIFT);
 		ClientTickEvents.END_CLIENT_TICK.register(this::tick);
 		WorldRenderEvents.BEFORE_TRANSLUCENT.register(this::renderWorld);
 		HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("accessiblevision", "accessibility_hud"), this::renderHud);
@@ -97,6 +99,9 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	}
 
 	private void tick(Minecraft client) {
+		while (openMenu.consumeClick()) {
+			client.setScreen(new AccessibleVisionScreen(this));
+		}
 		while (toggleOres.consumeClick()) {
 			 oresEnabled = !oresEnabled;
 			 if (client.player != null) client.player.displayClientMessage(net.minecraft.network.chat.Component.literal("Erzmarkierungen: " + (oresEnabled ? "An" : "Aus")), true);
@@ -118,6 +123,31 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 			ticksSinceScan = 0;
 			scanNearbyOres(client);
 		}
+	}
+
+	public boolean areOresEnabled() {
+		return oresEnabled;
+	}
+
+	public boolean arePlayersEnabled() {
+		return playersEnabled;
+	}
+
+	public boolean isWarmFilterEnabled() {
+		return warmFilterEnabled;
+	}
+
+	public void toggleOres() {
+		 oresEnabled = !oresEnabled;
+		 if (!oresEnabled) oreMarkers.clear();
+	}
+
+	public void togglePlayers() {
+		playersEnabled = !playersEnabled;
+	}
+
+	public void toggleWarmFilter() {
+		warmFilterEnabled = !warmFilterEnabled;
 	}
 
 	private void scanNearbyOres(Minecraft client) {

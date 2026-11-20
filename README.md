@@ -16,6 +16,7 @@ Die Tasten lassen sich unter **Optionen → Steuerung → Tastenbelegung → Acc
 - `O`: Erzmarkierungen ein/aus
 - `P`: Spieleranzeige ein/aus
 - `V`: warmer Bildschirmfilter ein/aus
+- `Rechts-Umschalt`: anklickbares Einstellungsmenü öffnen
 
 ## Bauen
 

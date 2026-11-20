@@ -2,5 +2,15 @@
   "key.category.accessiblevision.accessibility": "Accessible Vision",
   "key.accessiblevision.toggle_ores": "Erzmarkierungen umschalten",
   "key.accessiblevision.toggle_players": "Spieleranzeige umschalten",
-  "key.accessiblevision.toggle_warm_filter": "Warmen Bildschirmfilter umschalten"
+  "key.accessiblevision.toggle_warm_filter": "Warmen Bildschirmfilter umschalten",
+  "key.accessiblevision.open_menu": "Einstellungsmenü öffnen",
+  "screen.accessiblevision.title": "Accessible Vision – Einstellungen",
+  "screen.accessiblevision.ores.on": "Erzmarkierungen: AN",
+  "screen.accessiblevision.ores.off": "Erzmarkierungen: AUS",
+  "screen.accessiblevision.players.on": "Spieleranzeige: AN",
+  "screen.accessiblevision.players.off": "Spieleranzeige: AUS",
+  "screen.accessiblevision.warm.on": "Warmer Bildschirmfilter: AN",
+  "screen.accessiblevision.warm.off": "Warmer Bildschirmfilter: AUS",
+  "screen.accessiblevision.close": "Schließen",
+  "screen.accessiblevision.hint": "Rechts-Umschalt öffnet dieses Menü"
 }
