@@ -40,6 +40,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -76,6 +78,9 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private boolean oresEnabled = true;
 	private boolean playersEnabled = true;
 	private boolean warmFilterEnabled = false;
+	private boolean groundItemsEnabled = true;
+	private boolean mobsEnabled = true;
+	private String itemFilter = "";
 	private int ticksSinceScan;
 
 	public static AccessibleVisionClient getInstance() {
@@ -137,6 +142,22 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		return warmFilterEnabled;
 	}
 
+	public boolean areGroundItemsEnabled() {
+		return groundItemsEnabled;
+	}
+
+	public boolean areMobsEnabled() {
+		return mobsEnabled;
+	}
+
+	public String getItemFilter() {
+		return itemFilter;
+	}
+
+	public void setItemFilter(String filter) {
+		itemFilter = filter == null ? "" : filter.trim();
+	}
+
 	public void toggleOres() {
 		 oresEnabled = !oresEnabled;
 		 if (!oresEnabled) oreMarkers.clear();
@@ -148,6 +169,14 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 
 	public void toggleWarmFilter() {
 		warmFilterEnabled = !warmFilterEnabled;
+	}
+
+	public void toggleGroundItems() {
+		groundItemsEnabled = !groundItemsEnabled;
+	}
+
+	public void toggleMobs() {
+		mobsEnabled = !mobsEnabled;
 	}
 
 	private void scanNearbyOres(Minecraft client) {
@@ -185,15 +214,15 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 
 	private void renderWorld(WorldRenderContext context) {
 		Minecraft client = Minecraft.getInstance();
-		if (client.level == null || client.player == null || (!oresEnabled && !playersEnabled)) return;
+		if (client.level == null || client.player == null || (!oresEnabled && !playersEnabled && !groundItemsEnabled && !mobsEnabled)) return;
 		PoseStack matrices = context.matrices();
 		Vec3 camera = context.worldState().cameraRenderState.pos;
 		matrices.pushPose();
 		matrices.translate(-camera.x, -camera.y, -camera.z);
 		buffer = new BufferBuilder(ALLOCATOR, THROUGH_WALLS.getVertexFormatMode(), THROUGH_WALLS.getVertexFormat());
 		int markerCount = 0;
+		float pulse = 0.72f + 0.20f * (float) ((Math.sin(System.nanoTime() / 420_000_000.0) + 1.0) * 0.5);
 		if (oresEnabled) {
-			float pulse = 0.72f + 0.20f * (float) ((Math.sin(System.nanoTime() / 420_000_000.0) + 1.0) * 0.5);
 			for (Map.Entry<BlockPos, Integer> entry : oreMarkers.entrySet()) {
 				BlockPos pos = entry.getKey();
 				float inset = 0.08f;
@@ -205,7 +234,6 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 			}
 		}
 		if (playersEnabled) {
-			float pulse = 0.72f + 0.20f * (float) ((Math.sin(System.nanoTime() / 420_000_000.0) + 1.0) * 0.5);
 			for (Player player : client.level.players()) {
 				if (player == client.player || player.isRemoved() || player.distanceToSqr(client.player) > 32 * 32) continue;
 				AABB box = player.getBoundingBox();
@@ -213,6 +241,24 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFF3030, 0.07f);
 				addOutline(matrices.last().pose(), (float) box.minX, (float) box.minY, (float) box.minZ,
 						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFF3030, pulse);
+				markerCount++;
+			}
+		}
+		if (groundItemsEnabled) {
+			for (ItemEntity item : client.level.getEntitiesOfClass(ItemEntity.class, client.player.getBoundingBox().inflate(32),
+					entity -> !entity.isRemoved() && client.player.hasLineOfSight(entity) && matchesItemFilter(entity.getItem()))) {
+				AABB box = item.getBoundingBox();
+				addOutline(matrices.last().pose(), (float) box.minX, (float) box.minY, (float) box.minZ,
+						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFFD75E, pulse);
+				markerCount++;
+			}
+		}
+		if (mobsEnabled) {
+			for (Mob mob : client.level.getEntitiesOfClass(Mob.class, client.player.getBoundingBox().inflate(32),
+					entity -> !entity.isRemoved() && entity.isAlive() && client.player.hasLineOfSight(entity))) {
+				AABB box = mob.getBoundingBox();
+				addOutline(matrices.last().pose(), (float) box.minX, (float) box.minY, (float) box.minZ,
+						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFF55E6C1, pulse);
 				markerCount++;
 			}
 		}
@@ -268,24 +314,20 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private void renderHud(GuiGraphics graphics, net.minecraft.client.DeltaTracker tickCounter) {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.level == null) return;
-		int y = 8;
 		if (warmFilterEnabled) graphics.fill(0, 0, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight(), 0x12FFB35C);
-		graphics.fill(6, 6, 245, playersEnabled ? 24 + Math.min(4, nearbyPlayers(client).size()) * 28 : 25, 0xA0201717);
-		graphics.drawString(client.font, "ACCESSIBLE VISION  |  O Erze  P Spieler  V Warm", 12, y, 0xFFFFD89A, true);
-		y += 14;
 		if (playersEnabled) {
-			List<Player> nearby = nearbyPlayers(client);
-			for (int i = 0; i < Math.min(4, nearby.size()); i++) {
-				Player player = nearby.get(i);
-				String hand = player.getMainHandItem().isEmpty() ? "leere Hand" : player.getMainHandItem().getHoverName().getString();
-				String line = player.getName().getString() + "  " + Math.round(player.distanceTo(client.player)) + "m  |  " + hand;
-				graphics.drawString(client.font, line, 12, y, 0xFFFF6A6A, true);
-				y += 10;
-				String armor = armorSummary(player);
-				if (!armor.isEmpty()) {
-					graphics.drawString(client.font, armor, 18, y, 0xFFFFC0A0, true);
-					y += 10;
-				}
+			for (Player player : nearbyPlayers(client)) drawPlayerLabel(graphics, client, player);
+		}
+		if (groundItemsEnabled) {
+			for (ItemEntity item : client.level.getEntitiesOfClass(ItemEntity.class, client.player.getBoundingBox().inflate(32),
+					entity -> !entity.isRemoved() && client.player.hasLineOfSight(entity) && matchesItemFilter(entity.getItem()))) {
+				drawEntityLabel(graphics, client, item, item.getItem().getHoverName().getString() + " ×" + item.getItem().getCount(), 0xFFFFE17A);
+			}
+		}
+		if (mobsEnabled) {
+			for (Mob mob : client.level.getEntitiesOfClass(Mob.class, client.player.getBoundingBox().inflate(32),
+					entity -> !entity.isRemoved() && entity.isAlive() && client.player.hasLineOfSight(entity))) {
+				drawEntityLabel(graphics, client, mob, mob.getName().getString() + "  " + Math.round(mob.getHealth()) + "/" + Math.round(mob.getMaxHealth()) + " HP", 0xFF8FFFF0);
 			}
 		}
 	}
@@ -293,24 +335,63 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private List<Player> nearbyPlayers(Minecraft client) {
 		List<Player> result = new ArrayList<>();
 		for (Player player : client.level.players()) {
-			if (player != client.player && !player.isRemoved() && player.distanceToSqr(client.player) <= 32 * 32) result.add(player);
+			if (player != client.player && !player.isRemoved() && player.distanceToSqr(client.player) <= 32 * 32 && client.player.hasLineOfSight(player)) result.add(player);
 		}
 		result.sort(Comparator.comparingDouble(player -> player.distanceToSqr(client.player)));
 		return result;
 	}
 
-	private String armorSummary(Player player) {
-		StringBuilder result = new StringBuilder("Rüstung:");
-		int count = 0;
+	private boolean matchesItemFilter(ItemStack stack) {
+		return itemFilter.isEmpty() || stack.getHoverName().getString().toLowerCase().contains(itemFilter.toLowerCase());
+	}
+
+	private void drawPlayerLabel(GuiGraphics graphics, Minecraft client, Player player) {
+		List<String> lines = new ArrayList<>();
+		lines.add(player.getName().getString() + "  •  " + Math.round(player.distanceTo(client.player)) + " m");
+		ItemStack held = player.getMainHandItem();
+		lines.add("Hand: " + (held.isEmpty() ? "leer" : held.getHoverName().getString()));
 		for (EquipmentSlot slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
-			ItemStack stack = player.getItemBySlot(slot);
-			if (stack.isEmpty() || !stack.isDamageableItem()) continue;
-			if (count == 4) break;
-			int remaining = Math.max(0, 100 - Math.round(stack.getDamageValue() * 100f / stack.getMaxDamage()));
-			result.append(' ').append(remaining).append('%');
-			count++;
+			ItemStack armor = player.getItemBySlot(slot);
+			if (armor.isEmpty()) continue;
+			String name = armor.getHoverName().getString();
+			String durability = armor.isDamageableItem()
+					? " " + Math.max(0, 100 - Math.round(armor.getDamageValue() * 100f / armor.getMaxDamage())) + "%" : "";
+			lines.add(name + durability);
 		}
-		return count == 0 ? "" : result.toString();
+		drawLabel(graphics, client, player, lines, 0xFFFF7777);
+	}
+
+	private void drawEntityLabel(GuiGraphics graphics, Minecraft client, net.minecraft.world.entity.Entity entity, String text, int color) {
+		drawLabel(graphics, client, entity, List.of(text), color);
+	}
+
+	private void drawLabel(GuiGraphics graphics, Minecraft client, net.minecraft.world.entity.Entity entity, List<String> lines, int color) {
+		Vec3 camera = client.gameRenderer.getMainCamera().position();
+		Vec3 target = entity.position().add(0, entity.getBbHeight() + 0.25, 0);
+		Vec3 relative = target.subtract(camera);
+		double horizontal = Math.sqrt(relative.x * relative.x + relative.z * relative.z);
+		if (horizontal < 0.01) return;
+		double targetYaw = Math.toDegrees(Math.atan2(-relative.x, relative.z));
+		double yawDelta = Math.toRadians(net.minecraft.util.Mth.wrapDegrees((float) (targetYaw - client.player.getYRot())));
+		if (Math.abs(yawDelta) > Math.toRadians(80)) return;
+		double pitch = Math.toRadians(client.player.getXRot());
+		double elevation = Math.atan2(relative.y, horizontal) + pitch;
+		double fov = Math.toRadians(client.options.fov().get());
+		double focal = graphics.guiWidth() / (2.0 * Math.tan(fov / 2.0));
+		int centerX = graphics.guiWidth() / 2;
+		int centerY = graphics.guiHeight() / 2;
+		int x = centerX + (int) Math.round(Math.tan(yawDelta) * focal);
+		int y = centerY - (int) Math.round(Math.tan(elevation) * focal);
+		int width = Math.min(260, lines.stream().mapToInt(client.font::width).max().orElse(0) + 10);
+		int height = lines.size() * 10 + 8;
+		int left = x - width / 2;
+		int top = y - height;
+		if (left < 0 || left + width > graphics.guiWidth() || top < 0 || top + height > graphics.guiHeight()) return;
+		graphics.fill(left, top, left + width, top + height, 0xD0101720);
+		graphics.fill(left, top, left + width, top + 1, color);
+		for (int i = 0; i < lines.size(); i++) {
+			graphics.drawCenteredString(client.font, lines.get(i), x, top + 5 + i * 10, i == 0 ? color : 0xFFF2F6FA);
+		}
 	}
 
 	private static void draw(Minecraft client, MeshData built, RenderPipeline pipeline) {
