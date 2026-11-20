@@ -36,6 +36,7 @@ import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
@@ -82,6 +83,7 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private boolean warmFilterEnabled = false;
 	private boolean groundItemsEnabled = true;
 	private boolean mobsEnabled = true;
+	private boolean miningFeedbackEnabled = true;
 	private String itemFilter = "";
 	private int ticksSinceScan;
 
@@ -152,6 +154,10 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		return mobsEnabled;
 	}
 
+	public boolean isMiningFeedbackEnabled() {
+		return miningFeedbackEnabled;
+	}
+
 	public String getItemFilter() {
 		return itemFilter;
 	}
@@ -179,6 +185,10 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 
 	public void toggleMobs() {
 		mobsEnabled = !mobsEnabled;
+	}
+
+	public void toggleMiningFeedback() {
+		miningFeedbackEnabled = !miningFeedbackEnabled;
 	}
 
 	private void scanNearbyOres(Minecraft client) {
@@ -325,6 +335,10 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.level == null) return;
 		if (warmFilterEnabled) graphics.fill(0, 0, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight(), 0x12FFB35C);
+		if (miningFeedbackEnabled && client.gameMode != null && client.gameMode.isDestroying()) {
+			int stage = Math.max(0, Math.min(9, client.gameMode.getDestroyStage()));
+			drawMiningFeedback(graphics, client, (stage + 1) / 10.0f);
+		}
 		if (playersEnabled) {
 			for (Player player : nearbyPlayers(client)) drawPlayerLabel(graphics, client, player);
 		}
@@ -340,6 +354,19 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 				drawEntityLabel(graphics, client, mob, mob.getName().getString() + "  " + Math.round(mob.getHealth()) + "/" + Math.round(mob.getMaxHealth()) + " HP", 0xFF8FFFF0);
 			}
 		}
+	}
+
+	private void drawMiningFeedback(GuiGraphics graphics, Minecraft client, float progress) {
+		int centerX = graphics.guiWidth() / 2;
+		int y = graphics.guiHeight() / 2 + 22;
+		int width = 112;
+		int left = centerX - width / 2;
+		graphics.fill(left - 2, y - 2, left + width + 2, y + 8, 0xD0101720);
+		graphics.fill(left, y, left + width, y + 4, 0xFF27333E);
+		int fill = Math.max(2, Math.round(width * progress));
+		graphics.fill(left, y, left + fill, y + 4, 0xFF55C7D9);
+		graphics.fill(left, y - 1, left + fill, y, 0xAA9AF5FF);
+		graphics.drawCenteredString(client.font, Component.literal("Abbau  " + Math.round(progress * 100) + "%"), centerX, y + 9, 0xFFE8F7FA);
 	}
 
 	private List<Player> nearbyPlayers(Minecraft client) {
