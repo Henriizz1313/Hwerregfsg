@@ -4,13 +4,17 @@
   "key.accessiblevision.toggle_players": "Toggle player display",
   "key.accessiblevision.toggle_warm_filter": "Toggle warm screen filter",
   "key.accessiblevision.open_menu": "Open settings menu",
-  "screen.accessiblevision.title": "Accessible Vision Settings",
+  "screen.accessiblevision.title": "Accessible Vision – Settings",
+  "screen.accessiblevision.subtitle": "Clear view • accessible controls",
   "screen.accessiblevision.ores.on": "Ore highlights: ON",
   "screen.accessiblevision.ores.off": "Ore highlights: OFF",
   "screen.accessiblevision.players.on": "Player display: ON",
   "screen.accessiblevision.players.off": "Player display: OFF",
-  "screen.accessiblevision.warm.on": "Warm screen filter: ON",
-  "screen.accessiblevision.warm.off": "Warm screen filter: OFF",
+  "screen.accessiblevision.warm.on": "Warm filter: ON",
+  "screen.accessiblevision.warm.off": "Warm filter: OFF",
+  "screen.accessiblevision.packs": "Resource packs / custom skies",
+  "screen.accessiblevision.packs.title": "Resource packs – custom sky textures",
   "screen.accessiblevision.close": "Close",
   "screen.accessiblevision.hint": "Right Shift opens this menu"
 }
+
