@@ -31,7 +31,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -39,6 +39,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -212,7 +213,7 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		out.addVertex(m, dx, dy, dz).setColor(r,g,b,a);
 	}
 
-	private void renderHud(GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker tickCounter) {
+	private void renderHud(GuiGraphics graphics, net.minecraft.client.DeltaTracker tickCounter) {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.level == null) return;
 		int y = 8;
@@ -249,7 +250,8 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private String armorSummary(Player player) {
 		StringBuilder result = new StringBuilder("Rüstung:");
 		int count = 0;
-		for (ItemStack stack : player.getArmorSlots()) {
+		for (EquipmentSlot slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
+			ItemStack stack = player.getItemBySlot(slot);
 			if (stack.isEmpty() || !stack.isDamageableItem()) continue;
 			if (count == 4) break;
 			int remaining = Math.max(0, 100 - Math.round(stack.getDamageValue() * 100f / stack.getMaxDamage()));
