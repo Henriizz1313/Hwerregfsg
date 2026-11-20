@@ -45,6 +45,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -57,10 +59,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 
 public final class AccessibleVisionClient implements ClientModInitializer {
 	private static AccessibleVisionClient instance;
-	private static final RenderPipeline THROUGH_WALLS = RenderPipelines.register(
+	private static final RenderPipeline HIGHLIGHT_PIPELINE = RenderPipelines.register(
 			RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
 					.withLocation(Identifier.fromNamespaceAndPath("accessiblevision", "pipeline/highlight"))
-					.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+					.withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
 					.build());
 	private static final ByteBufferBuilder ALLOCATOR = new ByteBufferBuilder(RenderType.SMALL_BUFFER_SIZE);
 	private static final Vector4f COLOR_MODULATOR = new Vector4f(1f, 1f, 1f, 1f);
@@ -219,12 +221,13 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		Vec3 camera = context.worldState().cameraRenderState.pos;
 		matrices.pushPose();
 		matrices.translate(-camera.x, -camera.y, -camera.z);
-		buffer = new BufferBuilder(ALLOCATOR, THROUGH_WALLS.getVertexFormatMode(), THROUGH_WALLS.getVertexFormat());
+		buffer = new BufferBuilder(ALLOCATOR, HIGHLIGHT_PIPELINE.getVertexFormatMode(), HIGHLIGHT_PIPELINE.getVertexFormat());
 		int markerCount = 0;
 		float pulse = 0.72f + 0.20f * (float) ((Math.sin(System.nanoTime() / 420_000_000.0) + 1.0) * 0.5);
 		if (oresEnabled) {
 			for (Map.Entry<BlockPos, Integer> entry : oreMarkers.entrySet()) {
 				BlockPos pos = entry.getKey();
+				if (!isBlockVisible(client, pos)) continue;
 				float inset = 0.08f;
 				addBox(matrices.last().pose(), pos.getX() + inset, pos.getY() + inset, pos.getZ() + inset,
 						pos.getX() + 1f - inset, pos.getY() + 1f - inset, pos.getZ() + 1f - inset, entry.getValue(), 0.10f);
@@ -235,7 +238,8 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		}
 		if (playersEnabled) {
 			for (Player player : client.level.players()) {
-				if (player == client.player || player.isRemoved() || player.distanceToSqr(client.player) > 32 * 32) continue;
+				if (player == client.player || player.isRemoved() || player.distanceToSqr(client.player) > 32 * 32
+						|| !client.player.hasLineOfSight(player)) continue;
 				AABB box = player.getBoundingBox();
 				addBox(matrices.last().pose(), (float) box.minX, (float) box.minY, (float) box.minZ,
 						(float) box.maxX, (float) box.maxY, (float) box.maxZ, 0xFFFF3030, 0.07f);
@@ -269,10 +273,16 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		}
 		MeshData built = buffer.buildOrThrow();
 		try {
-			draw(client, built, THROUGH_WALLS);
+			draw(client, built, HIGHLIGHT_PIPELINE);
 		} finally {
 			buffer = null;
 		}
+	}
+
+	private boolean isBlockVisible(Minecraft client, BlockPos pos) {
+		BlockHitResult hit = client.level.clip(new ClipContext(
+				client.player.getEyePosition(), Vec3.atCenterOf(pos), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, client.player));
+		return hit.getType() == BlockHitResult.Type.BLOCK && hit.getBlockPos().equals(pos);
 	}
 
 	private static void addBox(Matrix4fc matrix, float x1, float y1, float z1, float x2, float y2, float z2, int argb, float alpha) {
