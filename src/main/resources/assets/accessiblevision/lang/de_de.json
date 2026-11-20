@@ -16,6 +16,8 @@
   "screen.accessiblevision.items.off": "Bodenitem-Vorschau: AUS",
   "screen.accessiblevision.mobs.on": "Mob-Lebensanzeige: AN",
   "screen.accessiblevision.mobs.off": "Mob-Lebensanzeige: AUS",
+  "screen.accessiblevision.mining.on": "Abbaufortschritt: AN",
+  "screen.accessiblevision.mining.off": "Abbaufortschritt: AUS",
   "screen.accessiblevision.item_filter": "Itemnamen-Filter (leer = alle)",
   "screen.accessiblevision.packs": "Ressourcenpakete / eigene Himmel",
   "screen.accessiblevision.packs.title": "Ressourcenpakete – Himmeltexturen",
