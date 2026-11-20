@@ -219,7 +219,7 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		int y = 8;
 		if (warmFilterEnabled) graphics.fill(0, 0, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight(), 0x12FFB35C);
 		graphics.fill(6, 6, 245, playersEnabled ? 24 + Math.min(4, nearbyPlayers(client).size()) * 28 : 25, 0xA0201717);
-		graphics.text(client.font, "ACCESSIBLE VISION  |  O Erze  P Spieler  V Warm", 12, y, 0xFFFFD89A, true);
+		graphics.drawString(client.font, "ACCESSIBLE VISION  |  O Erze  P Spieler  V Warm", 12, y, 0xFFFFD89A, true);
 		y += 14;
 		if (playersEnabled) {
 			List<Player> nearby = nearbyPlayers(client);
@@ -227,11 +227,11 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 				Player player = nearby.get(i);
 				String hand = player.getMainHandItem().isEmpty() ? "leere Hand" : player.getMainHandItem().getHoverName().getString();
 				String line = player.getName().getString() + "  " + Math.round(player.distanceTo(client.player)) + "m  |  " + hand;
-				graphics.text(client.font, line, 12, y, 0xFFFF6A6A, true);
+				graphics.drawString(client.font, line, 12, y, 0xFFFF6A6A, true);
 				y += 10;
 				String armor = armorSummary(player);
 				if (!armor.isEmpty()) {
-					graphics.text(client.font, armor, 18, y, 0xFFFFC0A0, true);
+					graphics.drawString(client.font, armor, 18, y, 0xFFFFC0A0, true);
 					y += 10;
 				}
 			}
