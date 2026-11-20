@@ -75,7 +75,7 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 	private KeyMapping openMenu;
 	private boolean oresEnabled = true;
 	private boolean playersEnabled = true;
-	private boolean warmFilterEnabled = true;
+	private boolean warmFilterEnabled = false;
 	private int ticksSinceScan;
 
 	public static AccessibleVisionClient getInstance() {
@@ -328,3 +328,5 @@ public final class AccessibleVisionClient implements ClientModInitializer {
 		}
 	}
 }
+
+
