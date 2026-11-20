@@ -16,6 +16,8 @@
   "screen.accessiblevision.items.off": "Ground item preview: OFF",
   "screen.accessiblevision.mobs.on": "Mob health: ON",
   "screen.accessiblevision.mobs.off": "Mob health: OFF",
+  "screen.accessiblevision.mining.on": "Mining progress preview: ON",
+  "screen.accessiblevision.mining.off": "Mining progress preview: OFF",
   "screen.accessiblevision.item_filter": "Item name filter (blank = all)",
   "screen.accessiblevision.packs": "Resource packs / custom skies",
   "screen.accessiblevision.packs.title": "Resource packs – custom sky textures",
