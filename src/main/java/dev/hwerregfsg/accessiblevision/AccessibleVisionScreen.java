@@ -20,7 +20,7 @@ public final class AccessibleVisionScreen extends Screen {
 	protected void init() {
 		int panelWidth = Math.min(380, this.width - 32);
 		int left = (this.width - panelWidth) / 2;
-		int top = Math.max(8, (this.height - 340) / 2);
+		int top = Math.max(8, (this.height - 370) / 2);
 		int buttonWidth = panelWidth - 40;
 		int buttonLeft = left + 20;
 		int row = top + 58;
@@ -50,7 +50,12 @@ public final class AccessibleVisionScreen extends Screen {
 			button.setMessage(toggleLabel("mobs", settings.areMobsEnabled()));
 		}).bounds(buttonLeft, row + 112, buttonWidth, 24).build());
 
-		EditBox filter = new EditBox(this.font, buttonLeft, row + 163, buttonWidth, 20,
+		this.addRenderableWidget(Button.builder(toggleLabel("mining", settings.isMiningFeedbackEnabled()), button -> {
+			settings.toggleMiningFeedback();
+			button.setMessage(toggleLabel("mining", settings.isMiningFeedbackEnabled()));
+		}).bounds(buttonLeft, row + 140, buttonWidth, 24).build());
+
+		EditBox filter = new EditBox(this.font, buttonLeft, row + 191, buttonWidth, 20,
 				Component.translatable("screen.accessiblevision.item_filter"));
 		filter.setMaxLength(48);
 		filter.setValue(settings.getItemFilter());
@@ -58,9 +63,9 @@ public final class AccessibleVisionScreen extends Screen {
 		this.addRenderableWidget(filter);
 
 		this.addRenderableWidget(Button.builder(Component.translatable("screen.accessiblevision.packs"), button -> openPacks())
-				.bounds(buttonLeft, row + 192, buttonWidth, 24).build());
+				.bounds(buttonLeft, row + 220, buttonWidth, 24).build());
 		this.addRenderableWidget(Button.builder(Component.translatable("screen.accessiblevision.close"), button -> this.onClose())
-				.bounds(buttonLeft, row + 222, buttonWidth, 24).build());
+				.bounds(buttonLeft, row + 250, buttonWidth, 24).build());
 	}
 
 	private void openPacks() {
@@ -84,13 +89,13 @@ public final class AccessibleVisionScreen extends Screen {
 		graphics.fill(0, 0, this.width, this.height, 0xC00B1018);
 		int panelWidth = Math.min(400, this.width - 24);
 		int left = (this.width - panelWidth) / 2;
-		int top = Math.max(8, (this.height - 340) / 2);
-		graphics.fill(left, top, left + panelWidth, top + 340, 0xF018202B);
+		int top = Math.max(8, (this.height - 370) / 2);
+		graphics.fill(left, top, left + panelWidth, top + 370, 0xF018202B);
 		graphics.fill(left, top, left + panelWidth, top + 2, 0xFF55C7D9);
 		graphics.drawCenteredString(this.font, this.title, this.width / 2, top + 17, 0xFFF2F6FA);
 		graphics.drawCenteredString(this.font, Component.translatable("screen.accessiblevision.subtitle"), this.width / 2, top + 38, 0xFFB8C6D3);
-		graphics.drawString(this.font, Component.translatable("screen.accessiblevision.item_filter"), left + 20, top + 201, 0xFFB8C6D3);
-		graphics.drawCenteredString(this.font, Component.translatable("screen.accessiblevision.hint"), this.width / 2, top + 322, 0xFFA8B6C4);
+		graphics.drawString(this.font, Component.translatable("screen.accessiblevision.item_filter"), left + 20, top + 229, 0xFFB8C6D3);
+		graphics.drawCenteredString(this.font, Component.translatable("screen.accessiblevision.hint"), this.width / 2, top + 352, 0xFFA8B6C4);
 		super.render(graphics, mouseX, mouseY, delta);
 	}
 
